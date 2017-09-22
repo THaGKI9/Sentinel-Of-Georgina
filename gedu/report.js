@@ -25,8 +25,12 @@ module.exports = class Report {
         from, to, subject, html,
       };
 
+      this.logger.debug(`send email options ${JSON.stringify(opts)}`);
+
       this.mail.sendMail(opts, (error) => {
-        this.logger.error(`fail to send email to ${to}. reason: ${error.toString()}`);
+        if (error) {
+          this.logger.error(`fail to send email to ${to}. reason: ${error.toString()}`);
+        }
         resolve(!error);
       });
     });
@@ -43,16 +47,17 @@ module.exports = class Report {
     /** @type {{[day: number]: {newEvents: [], oldEvents: []}} */
     const e = {};
     Array(dayRange).fill(0).forEach((value, index) => {
-      e[index + 1] = { newEvents: [], oldEvents: [] };
+      e[index] = { newEvents: [], oldEvents: [] };
     });
 
+    const nowToCompare = now.clone().startOf('day');
     oldEvents.forEach((event) => {
-      const dayDiff = moment(event.start).diff(now, 'days');
+      const dayDiff = moment(event.start).startOf('day').diff(nowToCompare, 'days');
       e[dayDiff].oldEvents.push(event);
     });
 
     newEvents.forEach((event) => {
-      const dayDiff = moment(event.start).diff(now, 'days');
+      const dayDiff = moment(event.start).startOf('day').diff(nowToCompare, 'days');
       e[dayDiff].newEvents.push(event);
     });
 
@@ -77,9 +82,9 @@ module.exports = class Report {
     };
 
     const tableContent = Array(dayRange).fill(0).map((value, index) => {
-      const date = moment(now).add(index + 1, 'days').format('dddd YYYY-MM-DD');
-      const oldE = e[index + 1].oldEvents;
-      const newE = e[index + 1].newEvents;
+      const date = moment(now).add(index, 'days').format('dddd YYYY-MM-DD');
+      const oldE = e[index].oldEvents;
+      const newE = e[index].newEvents;
 
       const e1 = oldE.map((event) => {
         const { title, location, time } = processName(event.name);
@@ -116,10 +121,9 @@ module.exports = class Report {
 
     const greeting = `<p>Dear Georgina, your recent ${dayRange} day(s) events have been update. </p>`;
 
-
     const dateFormat = 'MM-DD';
-    const startDate = now.add(1, 'days').format(dateFormat);
-    const endDate = now.add(dayRange - 1, 'days').format(dateFormat);
+    const startDate = now.clone().format(dateFormat);
+    const endDate = now.clone().add(dayRange - 1, 'days').format(dateFormat);
 
     const result = await this.send(greeting + table, `Events Report: ${startDate} - ${endDate}`);
     if (result) this.logger.info(`sent weekly report to email ${this.receiver}.`);
@@ -128,7 +132,8 @@ module.exports = class Report {
   }
 
   async sendTestEmail() {
+    this.logger.info(`start to send test message to email ${this.receiver}.`);
     const result = await this.send('<strong>test</strong>', 'haha');
-    this.logger.debug(`sent test message, result: ${result}`);
+    this.logger.info(`sent test message, result: ${JSON.stringify(result)}`);
   }
 };

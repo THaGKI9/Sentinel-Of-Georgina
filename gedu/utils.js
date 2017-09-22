@@ -41,10 +41,8 @@ module.exports = {
    * @return {{name: string, start: Date, end: Date}[]}
    */
   getRecentEvents(events, dayRange) {
-    const now = moment();
-    return events.filter((event) => {
-      const dayDiff = moment(event.start).diff(now, 'days');
-      return dayDiff > 0 && dayDiff <= dayRange;
-    });
+    const start = moment().startOf('day');
+    const end = start.clone().add(dayRange - 1, 'day').endOf('day');
+    return events.filter(event => moment(event.start).isBetween(start, end));
   },
 };

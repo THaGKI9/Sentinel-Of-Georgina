@@ -82,6 +82,7 @@ async function main() {
           return;
         }
 
+        logger.info('event change detects');
         await reporter.sendWeeklyReport(oldE, newE, config.monitor.dayRange);
       }));
     }),
