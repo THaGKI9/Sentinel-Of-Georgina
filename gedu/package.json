@@ -1,0 +1,25 @@
+{
+  "name": "georgina-alarm",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "node index",
+    "lint": "eslint . --fix"
+  },
+  "dependencies": {
+    "bluebird": "^3.5.0",
+    "cron": "^1.3.0",
+    "log4js": "^2.3.3",
+    "moment": "^2.18.1",
+    "nodemailer": "^4.1.0",
+    "request": "^2.82.0",
+    "request-promise": "^4.2.1",
+    "tough-cookie": "^2.3.2"
+  },
+  "devDependencies": {
+    "eslint": "4.6.0",
+    "eslint-config-airbnb-base": "^12.0.0",
+    "eslint-plugin-import": "2.7.0"
+  }
+}
