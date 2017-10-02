@@ -57,25 +57,48 @@ const updateEventsJob = async () => {
   }
 
   const newEvents = result.events.sort((a, b) => a.start - b.start);
-  const totalHours = utils.calcHours(newEvents);
-  logger.info(`events: ${newEvents.length}. total hours: ${totalHours}`);
-
   const oldEvents = events;
   events = newEvents;
 
   setImmediate(onTickWrapper(async () => {
-    const oldE = utils.getRecentEvents(oldEvents, config.monitor.dayRange);
-    const newE = utils.getRecentEvents(newEvents, config.monitor.dayRange);
+    let changed = false;
+    const prev = utils.getRecentEvents(oldEvents, config.monitor.dayRange);
+    const curr = utils.getRecentEvents(newEvents, config.monitor.dayRange);
 
-    const compareResult = utils.compareEvents(oldE, newE);
-    logger.debug(`compare result: ${JSON.stringify(compareResult)}`);
-    if (!compareResult) {
+    const prevHours = utils.calcHours(prev);
+    const currHours = utils.calcHours(curr);
+
+    if (prevHours !== currHours || prev.length !== curr.length) {
+      logger.debug('' +
+        `previou: ${prevHours}hrs(${prev.length}), ` +
+        `current: ${currHours}hrs(${curr.length})`);
+      changed = true;
+    } else {
+      for (let index = 0; index < prev.length; index += 1) {
+        changed = !(+prev[index].start === +curr[index].start
+          && +prev[index].end === +curr[index].end
+          && prev[index].name === curr[index].name);
+
+        if (changed) {
+          logger.debug(`old event: ${JSON.stringify(prev[index])}`);
+          logger.debug(`new event: ${JSON.stringify(curr[index])}`);
+          logger.debug('compare detail: '
+            + `start: ${+prev[index].start === +curr[index].start} `
+            + `end: ${+prev[index].end === +curr[index].end} `
+            + `name: ${prev[index].name === curr[index].name}`);
+
+          break;
+        }
+      }
+    }
+
+    if (!changed) {
       logger.info('no event changes');
       return;
     }
 
     logger.info('event change detects');
-    await reporter.sendWeeklyReport(oldE, newE, config.monitor.dayRange);
+    await reporter.sendWeeklyReport(prev, curr, config.monitor.dayRange);
   }));
 };
 
@@ -100,7 +123,7 @@ async function main() {
   logger.info('Sentinel of Georgina starts. :)');
 
   const jobUpdateEvents = new CronJob({
-    cronTime: '* */30 * * * *',
+    cronTime: '*/30 * * * * *',
     onTick: onTickWrapper(updateEventsJob),
     start: false,
     timeZone,
