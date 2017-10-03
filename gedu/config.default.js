@@ -11,6 +11,7 @@ module.exports = {
   report: {
     receiver: '',
     senderName: '',
+    cc: '',
     smtp: {
       host: '',
       port: 465,

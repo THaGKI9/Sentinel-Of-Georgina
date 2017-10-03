@@ -11,6 +11,7 @@ module.exports = class Report {
 
     this.smtp = config.report.smtp;
     this.receiver = config.report.receiver;
+    this.cc = config.report.cc;
     this.sender = this.smtp.auth.user;
     this.senderName = config.report.senderName;
 
@@ -21,8 +22,9 @@ module.exports = class Report {
     return new Promise((resolve) => {
       const from = `"${this.senderName}" <${this.sender}>`;
       const to = this.receiver;
+      const { cc } = this;
       const opts = {
-        from, to, subject, html,
+        from, to, cc, subject, html,
       };
 
       this.logger.debug(`send email options ${JSON.stringify(opts)}`);
