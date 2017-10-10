@@ -130,10 +130,16 @@ module.exports = class Bridge {
       /** @type {{Title: string, StartDate: string, EndDate: String}[]} */
       const eventData = JSON.parse(rawEventData) || [];
       const events = eventData.map((event) => {
-        const name = event.Title;
+        const { title, location, time } = this.processName(event.Title);
         const start = new Date(event.StartDate);
         const end = new Date(event.EndDate);
-        return { name, start, end };
+        return {
+          title,
+          location,
+          time,
+          start,
+          end,
+        };
       });
 
       return { success: true, events };
@@ -155,6 +161,21 @@ module.exports = class Bridge {
     }
 
     return null;
+  }
+
+  processName(name) {
+    const regex = /([^<]*?) <br\/><span title="教师考勤[^"]*?">[^<]*?<\/span> <span title="学员考勤[^"]*?">[^<]*?<\/span> <span title="校区">([^<]*?)<\/span><br\/>(.*)/;
+    const execResult = regex.exec(name);
+
+    if (!execResult) {
+      this.logger.error(`no information is extracted from the event name. name ${name}`);
+      return { title: '', timeAndLocation: '' };
+    }
+
+    const title = execResult[1];
+    const location = execResult[2];
+    const time = execResult[3];
+    return { title, location, time };
   }
 };
 

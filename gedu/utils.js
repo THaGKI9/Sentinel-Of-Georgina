@@ -27,7 +27,9 @@ module.exports = {
     for (let index = 0; index < prev.length; index += 1) {
       const same = +prev[index].start === +curr[index].start
         && +prev[index].end === +curr[index].end
-        && prev[index].name === curr[index].name;
+        && prev[index].title === curr[index].title
+        && prev[index].location === curr[index].location
+        && prev[index].time === curr[index].time;
 
       if (!same) return result;
     }

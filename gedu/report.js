@@ -63,49 +63,22 @@ module.exports = class Report {
       e[dayDiff].newEvents.push(event);
     });
 
-    /**
-     * extract info from event name
-     * @param {*} name
-     * @return {{title, location, time}}
-     */
-    const processName = (name) => {
-      const regex = /([^<]*?) <br\/><span title="教师考勤[^"]*?">[^<]*?<\/span> <span title="学员考勤[^"]*?">[^<]*?<\/span> <span title="校区">([^<]*?)<\/span><br\/>(.*)/;
-      const execResult = regex.exec(name);
-
-      if (!execResult) {
-        this.logger.error(`no information is extracted from the event name. name ${name}`);
-        return { title: '', timeAndLocation: '' };
-      }
-
-      const title = execResult[1];
-      const location = execResult[2];
-      const time = execResult[3];
-      return { title, location, time };
-    };
-
     const tableContent = Array(dayRange).fill(0).map((value, index) => {
       const date = moment(now).add(index, 'days').format('dddd YYYY-MM-DD');
       const oldE = e[index].oldEvents;
       const newE = e[index].newEvents;
 
-      const e1 = oldE.map((event) => {
-        const { title, location, time } = processName(event.name);
-        return ''
+      const e1 = oldE.map(({ title, location, time }) => ''
           + '<tr><td>'
           + `<span>${time}@${location}</span><br/>`
           + `<span>${title}</span><br/>`
-          + '</td></tr>';
-      }).join('');
+          + '</td></tr>').join('');
 
-      const e2 = newE.map((event) => {
-        const { title, location, time } = processName(event.name);
-        return ''
+      const e2 = newE.map(({ title, location, time }) => ''
           + '<tr><td>'
           + `<span>${time}@${location}</span><br/>`
           + `<span>${title}</span><br/>`
-          + '</td></tr>';
-      }).join('');
-
+          + '</td></tr>').join('');
 
       return ''
         + `<tr><td align="center" colspan="2">${date}</td></tr>`
