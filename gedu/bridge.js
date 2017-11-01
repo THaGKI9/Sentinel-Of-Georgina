@@ -164,18 +164,20 @@ module.exports = class Bridge {
   }
 
   processName(name) {
-    const regex = /([^<]*?) <br\/><span title="教师考勤[^"]*?">[^<]*?<\/span> <span title="学员考勤[^"]*?">[^<]*?<\/span> <span title="校区">([^<]*?)<\/span><br\/>(.*)/;
+    const regex = /^.*?\s(.*?)\s(.*?)\<br\/\>(.*?)\<br\/\>(.*?)\s.*?$/;
     const execResult = regex.exec(name);
 
     if (!execResult) {
       this.logger.error(`no information is extracted from the event name. name ${name}`);
-      return { title: '', timeAndLocation: '' };
+      return {};
     }
 
-    const title = execResult[1];
-    const location = execResult[2];
-    const time = execResult[3];
-    return { title, location, time };
+    return {
+      type: execResult[1],
+      time: execResult[2],
+      title: execResult[3],
+      location: execResult[4],
+    };
   }
 };
 
